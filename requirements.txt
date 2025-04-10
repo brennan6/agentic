@@ -1,0 +1,7 @@
+tenacity==8.5.0
+scipy==1.14.1
+tqdm==4.66.5
+openai==1.50.0
+termcolor==2.5.0
+crewai==0.76.9
+crewai-tools==0.13.4

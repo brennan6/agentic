@@ -1,0 +1,11 @@
+
+{
+    "status": "COMPLETED if success, FAILED if there was a problem",
+    "updatedAt": "now()",
+    "data": {
+         "item": "The name of the product that was actually searched.",
+         "price": "The price of the product searched.",
+         "condition": "The condition of the item, new or used, that the price is associated with.",
+         "source": "The url where the price associated with the searched product came from."
+    }
+}
