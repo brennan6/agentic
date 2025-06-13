@@ -1,17 +1,18 @@
-AI Price Tracker & Notification Agent
+### AI Price Tracker & Notification Agent
 An autonomous agent built with Python and LangGraph to monitor product prices online and send alerts for good deals.
 
-Overview
+### Overview
 This project implements an AI-powered "shopping agent" that can be tasked with researching a specific product. It uses large language models (LLMs) from OpenAI to understand user requests, the Tavily search API to perform real-time web research, and a conditional logic graph built with LangGraph to execute its tasks.
 
 The agent's primarsy goal is to find the current price of an item, compare it against a user-defined limit, and automatically trigger a notification if the item is available for purchase below that price.
 
-Key Technologies
+### Key Technologies
 Python 3.9+
 LangChain & LangGraph: For orchestrating the agent's logic and state management.
 OpenAI: For the core reasoning and response generation models (e.g., gpt-4o-mini).
 Tavily: For efficient and accurate web search results.
-Features
+
+### Features
 Automated Web Research: Uses the Tavily search tool to find current product information and pricing.
 Dynamic Price Comparison: Intelligently compares the lowest found price against a user-provided budget limit.
 Conditional Notifications: Only triggers a notification if a price is found that is lower than the user's limit.
@@ -48,23 +49,23 @@ Here is the logical flow of the agent:
     |
     v
 [END]
-Getting Started
+
+### Getting Started
 Follow these steps to set up and run the project locally.
 
-Prerequisites
+### Prerequisites
 Python 3.9 or later
 An OpenAI API Key
 A Tavily API Key
 Installation
 Clone the repository:
 
-Bash
+### Bash
 
 git clone https://your-repo-url/agentic.git
 cd shopping_agent
 Create and activate a virtual environment:
 
-Bash
 
 # For macOS / Linux
 python3 -m venv venv
@@ -86,7 +87,6 @@ tavily-python
 python-dotenv
 Then, install the packages:
 
-Bash
 
 pip install -r requirements.txt
 Configuration
@@ -98,6 +98,7 @@ Add your API keys to this file. This keeps your secret keys out of the source co
 
 OPENAI_API_KEY="your_openai_api_key_here"
 TAVILY_API_KEY="your_tavily_api_key_here"
+
 # Add any other keys needed for your notification service (e.g., Twilio)
 Usage
 You can run the agent by calling the main function from a script.
@@ -140,8 +141,6 @@ if __name__ == "__main__":
     print(result)
 
 Run the script from your terminal:
-
-Bash
 
 python run.py
 Future Improvements
