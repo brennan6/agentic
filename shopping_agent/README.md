@@ -21,34 +21,20 @@ Stateful Execution: Uses a LangGraph StateGraph to manage the flow of informatio
 How It Works
 The agent operates as a state machine, moving through a graph of nodes. Each node performs a specific action, and the graph's edges determine the next step.
 
-Here is the logical flow of the agent:
+### How It Works
 
-[Start: User Request]
-        |
-        v
-[1. LLM (Plan)] : Understands the request and plans to use the search tool.
-        |
-        v
-[2. Search (Tavily)] : Executes the web search for the product.
-        |
-        v
-[3. Process Results] : An LLM call analyzes search results and finds the lowest price.
-        |
-        v
-[4. Deal Found?] : A conditional check to see if the found price is below the limit.
-        |
-       / \
-      /   \
-(Yes) /     \ (No)
-     /       \
-    v         v
-[5. Notify]   [END]
-    |
-    v
-[6. Final Output]
-    |
-    v
-[END]
+The agent operates as a state machine, moving through a graph of nodes. The [LangGraph](https://python.langchain.com/v0.2/docs/langgraph/) framework manages the state and transitions based on the following logic:
+
+```mermaid
+graph TD
+    A["[Start: User Request]"] --> B["1. LLM (Plan)"];
+    B --> C["2. Search (Tavily)"];
+    C --> D["3. LLM (Process Results)"];
+    D --> E{"4. Deal Found?"};
+    E -->|Yes| F["5. Notify User"];
+    E -->|No| G["[END]"];
+    F --> H["6. Generate Final Output"];
+    H --> I["[END]"];
 
 ### Getting Started
 Follow these steps to set up and run the project locally.
