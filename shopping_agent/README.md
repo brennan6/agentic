@@ -23,18 +23,17 @@ The agent operates as a state machine, moving through a graph of nodes. Each nod
 
 ### How It Works
 
-The agent operates as a state machine, moving through a graph of nodes. The [LangGraph](https://python.langchain.com/v0.2/docs/langgraph/) framework manages the state and transitions based on the following logic:
+The agent operates as a state machine, moving through a graph of nodes with the following logical flow:
 
-```mermaid
-graph TD
-    A["[Start: User Request]"] --> B["1. LLM (Plan)"];
-    B --> C["2. Search (Tavily)"];
-    C --> D["3. LLM (Process Results)"];
-    D --> E{"4. Deal Found?"};
-    E -->|Yes| F["5. Notify User"];
-    E -->|No| G["[END]"];
-    F --> H["6. Generate Final Output"];
-    H --> I["[END]"];
+1.  **Plan:** The agent first receives the user request and uses an LLM to form a plan, deciding it needs to use the search tool.
+2.  **Search:** It executes a web search using the Tavily tool to find product information and pricing.
+3.  **Process:** The agent uses an LLM again to process the search results, find the lowest price, and compare it to the user's limit.
+4.  **Conditional Check (Deal Found?):**
+    * **If a deal is found** (price is below the limit), the flow proceeds to Step 5.
+    * **If no deal is found**, the flow ends, returning the research data without a notification.
+5.  **Notify:** The agent executes the `notify` tool to send an alert to the user.
+6.  **Final Output:** A final LLM call formats the research results into a clean JSON object for the user.
+7.  **End:** The process completes.
 
 ### Getting Started
 Follow these steps to set up and run the project locally.
