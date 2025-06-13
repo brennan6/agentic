@@ -7,25 +7,34 @@ from agent import ShoppingAgent
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.tavily_search import TavilySearchResults
 from tools import notify
-from build_response_class import build_response_class
 
 def main(request):
+    """Initializes and executes a shopping agent to find and compare an item's price.
+
+    This function sets up and runs an AI shopping agent with OpenAI models
+    and tools. The agent researches an item's price online, compares it
+    against a user-defined limit, and notifies the user if the item is
+    within budget.
+
+    Args:
+        request (dict): A dictionary containing the user's search criteria.
+            Expected keys include:
+            - 'item' (str): The name of the product to research.
+            - 'condition' (str): The condition of the item (e.g., 'new').
+            - 'limit' (float or int): The maximum price the user will pay.
+            - 'phone_number' (str): The user's phone number for notifications.
+            - 'size' (str): The specific size of the product.
+            - 'profile' (str): The specific style or profile of the product.
+
+    Returns:
+        dict: A dictionary (intended for JSON output) containing the research
+              results, including the item name, lowest price, condition, and source.
     """
-    TO DO: CLEAN 
-    """
-    region="us1"
-    LITELLM_API_KEY = os.getenv("LITELLM_API_KEY")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
     # OpenAI:
     research_model = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o-mini")
     response_model = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o-mini")
-
-    # LiteLLM:
-    # research_model = ChatOpenAI(api_key=LITELLM_API_KEY, base_url=f"https://litellm-api.{region}.salesloft.com",
-    #                             model="gemini-pro")  # requires more advanced model
-    # response_model = ChatOpenAI(api_key=LITELLM_API_KEY, base_url=f"https://litellm-api.{region}.salesloft.com",
-    #                             model="gemini-1.5-flash-002")
 
     tools = [TavilySearchResults(max_results=4), notify]
     user_prompt = (
@@ -48,17 +57,11 @@ def main(request):
             - Do not explain any of these fields."""
         )
 
-    with open("../configs/prompts.json", "r") as file:
-        response_format = json.load(file)
-
-    response_class = build_response_class(response_format)
-
     shopping_agent = ShoppingAgent(research_model=research_model, response_model=response_model,
-                                   price=request["limit"], tools=tools, ResponseClass=response_class)
-    output = shopping_agent._execute(user_prompt)
+                                   limit_price=request['limit'], tools=tools)
+    output = shopping_agent._execute(user_prompt, request)
 
     return output
-
 
 if __name__ == "__main__":
     request = {"item": "Atomic Bent 110 Skis 2024/2025",
@@ -67,47 +70,8 @@ if __name__ == "__main__":
                "phone_number": "867-75309",
                "size": 180,
                "profile": "adult"} 
-
-    region="us1"
-    LITELLM_API_KEY = os.getenv("LITELLM_API_KEY")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-    # OpenAI:
-    research_model = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o-mini")
-    response_model = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o")
-
-    # LiteLLM:
-    # research_model = ChatOpenAI(api_key=LITELLM_API_KEY, base_url=f"https://litellm-api.{region}.salesloft.com",
-    #                             model="gemini-pro")  # requires more advanced model
-    # response_model = ChatOpenAI(api_key=LITELLM_API_KEY, base_url=f"https://litellm-api.{region}.salesloft.com",
-    #                             model="gemini-1.5-flash-002")
-
-    tools = [TavilySearchResults(max_results=4), notify]
-    user_prompt = (
-            f"Today's date is {date.today()}. "
-            f"Using the search function that is provided, research the price of {request['item']} given its {request['condition']}. "
-            f"Your goal is to determine how this price compares to {request['limit']}, which is the maximum price the user would buy this item for. "
-            f"If the researched price is less than user's maximum price it is your job to notify the user of this using the notify function by passing in {request['phone_number']}. "
-            "Use the provided date to make sure your information is as up to date as possible. "
-            f"""
-            # REQUIREMENTS:
-            - The name of the product researched.
-            - The lowest price observed from research for this product given its {request['condition']}.
-            - The condition of the product.
-            # FINAL OUTPUT:
-            - Structure the final output payload as a JSON object containing the item, lowest price, and condition.
-            - Do not explain any of these fields."""
-        )
-
-    with open("./configs/prompts.json", "r") as file:
-        response_format = json.load(file)
-
-    response_class = build_response_class(response_format)
-
-    shopping_agent = ShoppingAgent(research_model=research_model, response_model=response_model,
-                                   tools=tools, ResponseClass=response_class)
-    output = shopping_agent._execute(user_prompt)
-
+    
+    output = main(request)
     print("\n\nOutput:")
     print(output)
 
