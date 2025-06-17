@@ -1,4 +1,5 @@
 .env
+*env*
 .DS_Store
 agentic_env
-shopping_agent/src/__pycache__
+*__pycache__*
