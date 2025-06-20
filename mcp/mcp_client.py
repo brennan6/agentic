@@ -1,9 +1,12 @@
 from langchain_openai import ChatOpenAI
 from contextlib import asynccontextmanager
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from agent import BettingAgent
 from langgraph.prebuilt import create_react_agent
 import asyncio
 import os
+from uuid import uuid4
+from langchain_core.messages import HumanMessage
 import logging
 
 from dotenv import load_dotenv
@@ -38,17 +41,23 @@ async def main():
 
     logger.info("Loaded MCP tools:" + ", ".join(tool.name for tool in tools))
 
-    agent = create_react_agent(
-            llm,
-            tools=tools,
-            prompt="You are a helpful assistant. After answering the question please provide me with a list of the tools used."
-        )
+    # agent = create_react_agent(
+    #         llm, 
+    #         tools=tools,
+    #         prompt="You are a helpful assistant. After answering the question please provide me with a list of the tools used."
+    #     )
+    agent = BettingAgent(llm, tools=tools)
     
     yield agent
 
 async def invoke_agent(query):
     async with main() as agent:
-        agent_response = await agent.ainvoke({"messages": query})
+        # agent_response = await agent.execute(query)
+        session_id = str(uuid4())
+        initial_state = {"session_id": session_id,
+                         "messages": [HumanMessage(content=query)],
+                         "query": query}
+        agent_response = await agent.graph.ainvoke(initial_state)
         print("==== Final Answer ====")
         print(agent_response['messages'])
 

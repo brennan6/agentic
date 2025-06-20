@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import BaseMessage, ToolMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
+from langgraph.prebuilt import ToolNode
 
 load_dotenv()
 
@@ -29,6 +30,8 @@ class BettingAgent:
     def __init__(self, model, tools):
         # self.tools = {t.name: t for t in tools}
         self.tools = tools
+        # The pre-built ToolNode handles executing tools
+        self.tool_node = ToolNode(self.tools)
         self.model = model.bind_tools(tools)
         self.graph = self._build_graph()
         self.attempts = 0
@@ -39,7 +42,7 @@ class BettingAgent:
 
         # Define the two nodes in our graph: the agent and the tool executor
         workflow.add_node("agent", self.call_model)
-        workflow.add_node("action", self.call_tool)
+        workflow.add_node("tools", self.tool_node)
 
         # The entry point is the agent node
         workflow.set_entry_point("agent")
@@ -49,13 +52,13 @@ class BettingAgent:
             "agent",
             self.should_continue,
             {
-                "continue": "action",
+                "tools": "tools",
                 "end": END,
             },
         )
         
         # After an action, always go back to the agent to process the results
-        workflow.add_edge("action", "agent")
+        workflow.add_edge("tools", "agent")
 
         # Compile the graph into a runnable application
         return workflow.compile()
@@ -84,25 +87,26 @@ class BettingAgent:
         # The response from the LLM is added to the state
         return {"messages": [response]}
 
-    def call_tool(self, state: State):
-        """
-        This node executes the tool chosen by the agent.
-        """
-        last_message = state["messages"][-1]
+    # def call_tool(self, state: State):
+    #     """
+    #     This node executes the tool chosen by the agent.
+    #     """
+    #     last_message = state["messages"][-1]
         
-        # We know this is an AIMessage with tool_calls because of our routing logic
-        tool_call = last_message.tool_calls[0]
-        tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
+    #     # We know this is an AIMessage with tool_calls because of our routing logic
+    #     tool_call = last_message.tool_calls[0]
+    #     tool_name = tool_call["name"]
+    #     tool_args = tool_call["args"]
         
-        logging.info(f"AGENT: Executing tool '{tool_name}' with args {tool_args}")
+    #     logging.info(f"AGENT: Executing tool '{tool_name}' with args {tool_args}")
         
-        # Find the correct tool function and execute it
-        tool_function = next(t for t in self.tools if t.__name__ == tool_name)
-        response = tool_function(**tool_args)
+    #     # Find the correct tool function and execute it
+    #     tool_function = next(t for t in self.tools if t.name == tool_name)
+    #     print(tool_args)
+    #     response = tool_function(input=tool_args)
         
-        # We return the tool's response as a ToolMessage
-        return {"messages": [ToolMessage(content=str(response), tool_call_id=tool_call["id"])]}
+    #     # We return the tool's response as a ToolMessage
+    #     return {"messages": [ToolMessage(content=str(response), tool_call_id=tool_call["id"])]}
 
     def should_continue(self, state: State):
         """
@@ -114,7 +118,7 @@ class BettingAgent:
             logging.info("AGENT: Decision reached. Ending workflow.")
             return "end"
         # Otherwise, continue to the action node to execute the tool.
-        return "continue"
+        return "tools"
     
     def execute(self, user_query: str):
         """
